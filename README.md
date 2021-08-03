@@ -1,7 +1,7 @@
 # FlutterChatbot
 
-To start conversation click - Start Conversation !
-if any unexcepted behavior accure - click refresh (found at the top left)
+To start conversation click - Start Conversation ! \
+if any unexcepted behavior accure - click refresh (found at the top left) 
 
 
 packages used : 

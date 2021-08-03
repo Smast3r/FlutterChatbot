@@ -1,9 +1,9 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:ibm_watson_assistant/ibm_watson_assistant.dart';
 import 'package:text_to_speech/text_to_speech.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 
 void main() {
   runApp(TheApp());
@@ -41,38 +41,75 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _isVisible = true;
   bool refreshBtn = false;
-  bool _inConversation = true;
-  String _speech = '' ;
-  bool _isListening = false ;
+  String _speech = '';
+  bool _isListening = false;
+  bool refreshed = true ;
+  stt.SpeechToText speech = stt.SpeechToText( );
+  var speech2 ;
+
+  void Listen() async {
+      if (speech2 && refreshed) {
+      await speech.listen(
+
+        onResult: (sp) =>
+          setState(() {
+            _speech = sp.recognizedWords;
+          })
+  );
+
+      if (_isListening) {
+        await Future.doWhile(() => Future.delayed(Duration(milliseconds: 100)).then((_) => _isListening));
+      }
+      botRes = await bot.sendInput(_speech, sessionId: sessionId);
+      print('here');
+      SpeechFunc();
+
+
+
+    }
+  }
+
+  void SpeechFunc() async{
+    if(refreshed) {
+      FlutterTts tts = FlutterTts();
+      String text = botRes.output.generic.first.text; //botRes.responseText;
+      tts.setVolume(1.0);
+      await tts.awaitSpeakCompletion(true);
+      await tts.awaitSynthCompletion(true);
+      await tts.speak(text);
+      Listen();
+    }
+  }
+
+  void onStatusFunc(String O) async{
+    print(O);
+    setState(() {
+      if(O=="listening")
+        _isListening = true ;
+      else
+        _isListening = false ;
+
+    });
+  }
 
   void toggleShow() async {
     setState(() {
       _isVisible = !_isVisible;
-      refreshBtn = _inConversation = true;
+      refreshBtn =  true;
+      refreshed = true ; 
     });
     // estaplish to watson
     sessionId = await bot.createSession();
     botRes = await bot.sendInput('hello', sessionId: sessionId);
+    speech2= await speech.initialize(
+      onStatus: onStatusFunc,
+
+      debugLogging: true,
+    );
+
+     SpeechFunc();
 
 
-      TextToSpeech tts = TextToSpeech();
-      String text = botRes.output.generic.first.text; //botRes.responseText;
-      tts.setVolume(100.0);
-      tts.speak(text);
-
-// here we start to lesten
-      stt.SpeechToText speech = stt.SpeechToText();
-      var speech2 = await speech.initialize(
-        debugLogging: true,
-      );
-      if (speech2) {
-        await speech.listen(
-          onResult: (sp) => setState(() {
-            _speech = sp.recognizedWords ;
-            print(sp);
-          }),
-        );
-      }
 
   }
 
@@ -83,7 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isVisible = true;
       sessionId = tmp;
-      _inConversation = false;
+      refreshed = false ;
+
     });
   }
 

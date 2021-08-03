@@ -77,7 +77,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await tts.awaitSpeakCompletion(true);
       await tts.awaitSynthCompletion(true);
       await tts.speak(text);
+      if(text!="Bye")
       Listen();
+      else
+        restart();
     }
   }
 
